@@ -4674,16 +4674,10 @@ static int load_dll(struct mg_context *ctx, const char *dll_name,
 }
 #endif // NO_SSL_DL
 
-// Dynamically load SSL library. Set up ctx->ssl_ctx pointer.
-static int set_ssl_option(struct mg_context *ctx) {
-  int i, size;
-  const char *pem;
 
-  // If PEM file is not specified, skip SSL initialization.
-  if ((pem = ctx->config[SSL_CERTIFICATE]) == NULL) {
-    return 1;
-  }
-
+// global SSL init
+int global_SSL_init(struct mg_context *ctx)
+{
 #if !defined(NO_SSL_DL)
   if (!load_dll(ctx, SSL_LIB, ssl_sw) ||
       !load_dll(ctx, CRYPTO_LIB, crypto_sw)) {
@@ -4694,6 +4688,21 @@ static int set_ssl_option(struct mg_context *ctx) {
   // Initialize SSL library
   SSL_library_init();
   SSL_load_error_strings();
+  return 1;
+}
+
+
+// Dynamically load SSL library. Set up ctx->ssl_ctx pointer.
+static int set_ssl_option(struct mg_context *ctx) {
+  int i, size;
+  const char *pem;
+
+  // If PEM file is not specified, skip SSL initialization.
+  if ((pem = ctx->config[SSL_CERTIFICATE]) == NULL) {
+    return 1;
+  }
+
+  if (global_SSL_init(ctx)==0) return 0;
 
   if ((ctx->ssl_ctx = SSL_CTX_new(SSLv23_server_method())) == NULL) {
     cry(fc(ctx), "SSL_CTX_new (server) error: %s", ssl_error());
@@ -4911,6 +4920,11 @@ struct mg_connection *mg_download(const char *host, int port, int use_ssl,
   va_list ap;
 
   va_start(ap, fmt);
+
+  if (use_ssl && SSLv23_client_method==NULL) {
+    global_SSL_init(NULL); // load SSL DLLs, no server context
+  }
+
   ebuf[0] = '\0';
   if ((conn = mg_connect(host, port, use_ssl, ebuf, ebuf_len)) == NULL) {
   } else if (mg_vprintf(conn, fmt, ap) <= 0) {
