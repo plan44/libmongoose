@@ -3733,11 +3733,18 @@ static void handle_ssi_file_request(struct mg_connection *conn,
     send_http_error(conn, 500, http_500_error, "fopen(%s): %s", path,
                     strerror(ERRNO));
   } else {
+    // determine mime type from ssi file's extension
+    struct vec mime_vec;
+    get_mime_type(conn->ctx, path, &mime_vec);
+    // deliver SSI file
     conn->must_close = 1;
     fclose_on_exec(&file);
     mg_printf(conn, "HTTP/1.1 200 OK\r\n"
-              "Content-Type: text/html\r\nConnection: %s\r\n\r\n",
+              "Content-Type: %.*s\r\n"
+              "Connection: %s\r\n\r\n",
+              (int) mime_vec.len, mime_vec.ptr,
               suggest_connection_header(conn));
+
     send_ssi_file(conn, path, &file, 0);
     mg_fclose(&file);
   }
