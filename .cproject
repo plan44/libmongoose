@@ -29,7 +29,7 @@
 <tool id="com.digi.lxnetes.managedbuild.c.compiler.so.debug.822496422" name="GCC C Cross-Compiler" superClass="com.digi.lxnetes.managedbuild.c.compiler.so.debug">
 <option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.option.optimization.level.820136846" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
 <option id="gnu.c.compiler.option.debugging.level.1987709582" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
-<option id="gnu.c.compiler.option.misc.other.1177562749" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -fPIC" valueType="string"/>
+<option id="gnu.c.compiler.option.misc.other.1177562749" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -fPIC" valueType="string"/>
 <inputType id="com.digi.lxnetes.managedbuild.c.compiler.input.825607020" superClass="com.digi.lxnetes.managedbuild.c.compiler.input"/>
 </tool>
 <tool id="com.digi.lxnetes.managedbuild.cpp.compiler.so.debug.2608062" name="GCC C++ Cross-Compiler" superClass="com.digi.lxnetes.managedbuild.cpp.compiler.so.debug">
@@ -483,9 +483,9 @@
 <builder buildPath="${workspace_loc:/libmongoose/Release}" id="com.digi.lxnetes.builder.so.release.1979024939" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="com.digi.lxnetes.builder.so.release"/>
 <tool id="com.digi.lxnetes.managedbuild.archiver.base.1183808360" name="GCC C Cross-Archiver" superClass="com.digi.lxnetes.managedbuild.archiver.base"/>
 <tool id="com.digi.lxnetes.managedbuild.c.compiler.so.realease.1254172584" name="GCC C Cross-Compiler" superClass="com.digi.lxnetes.managedbuild.c.compiler.so.realease">
-<option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.option.optimization.level.1510841381" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
+<option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.option.optimization.level.1510841381" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" value="gnu.c.optimization.level.more" valueType="enumerated"/>
 <option id="gnu.c.compiler.option.debugging.level.641897576" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.none" valueType="enumerated"/>
-<option id="gnu.c.compiler.option.misc.other.2022392001" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -fPIC" valueType="string"/>
+<option id="gnu.c.compiler.option.misc.other.2022392001" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -fPIC" valueType="string"/>
 <inputType id="com.digi.lxnetes.managedbuild.c.compiler.input.721571038" superClass="com.digi.lxnetes.managedbuild.c.compiler.input"/>
 </tool>
 <tool id="com.digi.lxnetes.managedbuild.cpp.compiler.so.release.640552922" name="GCC C++ Cross-Compiler" superClass="com.digi.lxnetes.managedbuild.cpp.compiler.so.release">
