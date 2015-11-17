@@ -4620,9 +4620,9 @@ static int set_uid_option(struct mg_context *ctx) {
 static pthread_mutex_t *ssl_mutexes;
 
 static int sslize(struct mg_connection *conn, SSL_CTX *s, int (*func)(SSL *)) {
-  return (conn->ssl = SSL_new(s)) != NULL &&
-    SSL_set_fd(conn->ssl, conn->client.sock) == 1 &&
-    func(conn->ssl) == 1;
+  if ((conn->ssl = SSL_new(s)) == NULL) return 0;
+  if (SSL_set_fd(conn->ssl, conn->client.sock) != 1) return 0;
+  return func(conn->ssl); // 1 if ok, 0 or -1 if we had an SSL error
 }
 
 // Return OpenSSL error message
@@ -4848,6 +4848,7 @@ struct mg_connection *mg_connect(const char *host, int port, int use_ssl,
   static struct mg_context fake_ctx;
   struct mg_connection *conn = NULL;
   SOCKET sock;
+  int ret;
 
   if ((sock = conn2(host, port, use_ssl, ebuf, ebuf_len)) == INVALID_SOCKET) {
   } else if ((conn = (struct mg_connection *)
@@ -4875,8 +4876,9 @@ struct mg_connection *mg_connect(const char *host, int port, int use_ssl,
       // SSL_CTX_set_verify call is needed to switch off server certificate
       // checking, which is off by default in OpenSSL and on in yaSSL.
       SSL_CTX_set_verify(conn->client_ssl_ctx, 0, 0);
-      if (!sslize(conn, conn->client_ssl_ctx, SSL_connect)) {
-        snprintf(ebuf, ebuf_len, "SSL error: %s", ssl_error());
+      ret = sslize(conn, conn->client_ssl_ctx, SSL_connect);
+      if (!ret) {
+        snprintf(ebuf, ebuf_len, "SSL_connect ret=%d, SSL_get_error()=%d, ssl_error()='%s'", ret, SSL_get_error(conn->ssl, ret), ssl_error());
         mg_close_connection(conn);
         conn = NULL;
       }
