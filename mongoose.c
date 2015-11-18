@@ -342,6 +342,7 @@ struct ssl_func {
 #define SSL_pending (* (int (*)(SSL *)) ssl_sw[18].ptr)
 #define SSL_CTX_set_verify (* (void (*)(SSL_CTX *, int, int)) ssl_sw[19].ptr)
 #define SSL_shutdown (* (int (*)(SSL *)) ssl_sw[20].ptr)
+#define TLSv1_client_method (* (SSL_METHOD * (*)(void)) ssl_sw[21].ptr)
 
 #define CRYPTO_num_locks (* (int (*)(void)) crypto_sw[0].ptr)
 #define CRYPTO_set_locking_callback \
@@ -377,6 +378,7 @@ static struct ssl_func ssl_sw[] = {
   {"SSL_pending", NULL},
   {"SSL_CTX_set_verify", NULL},
   {"SSL_shutdown",   NULL},
+  {"TLSv1_client_method",   NULL},
   {NULL,    NULL}
 };
 
@@ -4857,7 +4859,7 @@ struct mg_connection *mg_connect(const char *host, int port, int use_ssl,
     closesocket(sock);
 #ifndef NO_SSL
   } else if (use_ssl && (conn->client_ssl_ctx =
-                         SSL_CTX_new(SSLv23_client_method())) == NULL) {
+                         SSL_CTX_new(TLSv1_client_method==NULL ? SSLv23_client_method() : TLSv1_client_method())) == NULL) {
     snprintf(ebuf, ebuf_len, "SSL_CTX_new error");
     closesocket(sock);
     free(conn);
