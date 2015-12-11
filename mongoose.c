@@ -4928,6 +4928,8 @@ static int getreq(struct mg_connection *conn, char *ebuf, size_t ebuf_len) {
   return ebuf[0] == '\0';
 }
 
+
+
 struct mg_connection *mg_download(const char *host, int port, int use_ssl,
                                   char *ebuf, size_t ebuf_len,
                                   const char *fmt, ...) {
@@ -4954,6 +4956,54 @@ struct mg_connection *mg_download(const char *host, int port, int use_ssl,
 
   return conn;
 }
+
+
+static int set_sock_timeout(SOCKET sock, int milliseconds) {
+#ifdef _WIN32
+  DWORD t = milliseconds;
+#else
+  struct timeval t;
+  t.tv_sec = milliseconds / 1000;
+  t.tv_usec = (milliseconds * 1000) % 1000000;
+#endif
+  return setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (void *) &t, sizeof(t)) ||
+  setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (void *) &t, sizeof(t));
+}
+
+
+
+struct mg_connection *mg_download_tmo(const char *host, int port, int use_ssl,
+                                      int timeout,
+                                      char *ebuf, size_t ebuf_len,
+                                      const char *fmt, ...) {
+  struct mg_connection *conn;
+  va_list ap;
+
+  va_start(ap, fmt);
+
+  if (use_ssl && SSLv23_client_method==NULL) {
+    global_SSL_init(NULL); // load SSL DLLs, no server context
+  }
+
+  ebuf[0] = '\0';
+  if ((conn = mg_connect(host, port, use_ssl, ebuf, ebuf_len)) == NULL) {
+  } else if (mg_vprintf(conn, fmt, ap) <= 0) {
+    snprintf(ebuf, ebuf_len, "%s", "Error sending request");
+  } else {
+    if (timeout>0) {
+      set_sock_timeout(conn->client.sock, timeout);
+    }
+    getreq(conn, ebuf, ebuf_len);
+  }
+  if (ebuf[0] != '\0' && conn != NULL) {
+    mg_close_connection(conn);
+    conn = NULL;
+  }
+
+  return conn;
+}
+
+
 
 static void process_new_connection(struct mg_connection *conn) {
   struct mg_request_info *ri = &conn->request_info;
@@ -5113,18 +5163,6 @@ static void produce_socket(struct mg_context *ctx, const struct socket *sp) {
 
   (void) pthread_cond_signal(&ctx->sq_full);
   (void) pthread_mutex_unlock(&ctx->mutex);
-}
-
-static int set_sock_timeout(SOCKET sock, int milliseconds) {
-#ifdef _WIN32
-  DWORD t = milliseconds;
-#else
-  struct timeval t;
-  t.tv_sec = milliseconds / 1000;
-  t.tv_usec = (milliseconds * 1000) % 1000000;
-#endif
-  return setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (void *) &t, sizeof(t)) ||
-    setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (void *) &t, sizeof(t));
 }
 
 static void accept_new_connection(const struct socket *listener,
